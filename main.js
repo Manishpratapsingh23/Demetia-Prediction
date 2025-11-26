@@ -48,7 +48,7 @@ document.getElementById('predictionForm').addEventListener('submit', async (e) =
             }
             throw new Error(errorMessage);
         }
-        
+        // app
         const responseText = await response.text();
         console.log('Response:', responseText);
         
