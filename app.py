@@ -8,12 +8,10 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Global variables
 model = None
 label_encoders = None
 feature_names = None
 
-# Load model and encoders
 def load_model_files():
     global model, label_encoders, feature_names
     
@@ -45,7 +43,6 @@ def load_model_files():
         traceback.print_exc()
         return False
 
-# Load files at startup
 if not load_model_files():
     print("\n" + "="*60)
     print("WARNING: Model files not found!")
@@ -70,7 +67,6 @@ def predict():
     print(f"Content-Type: {request.headers.get('Content-Type')}")
     print(f"{'='*60}")
     
-    # Handle CORS preflight
     if request.method == 'OPTIONS':
         response = jsonify({'status': 'ok'})
         response.headers.add('Access-Control-Allow-Origin', '*')
@@ -81,11 +77,9 @@ def predict():
     print("Processing POST request...")
     
     try:
-        # Check if model is loaded
         if model is None or label_encoders is None or feature_names is None:
             return jsonify({'error': 'Model not loaded'}), 500
         
-        # Get JSON data
         data = request.get_json()
         
         if data is None:
@@ -95,7 +89,6 @@ def predict():
         
         input_data = {}
         
-        # Numeric features
         input_data['Diabetic'] = int(data.get('Diabetic', 0))
         input_data['AlcoholLevel'] = float(data.get('AlcoholLevel', 0))
         input_data['HeartRate'] = int(data.get('HeartRate', 0))
@@ -107,7 +100,6 @@ def predict():
         input_data['Cognitive_Test_Scores'] = int(data.get('Cognitive_Test_Scores', 0))
         input_data['Dosage in mg'] = float(data.get('Dosage_in_mg', 0))
         
-        # Categorical features
         categorical_features = {
             'Prescription': data.get('Prescription', 'None'),
             'Education_Level': data.get('Education_Level', 'None'),
@@ -124,7 +116,6 @@ def predict():
             'Chronic_Health_Conditions': data.get('Chronic_Health_Conditions', 'None')
         }
         
-        # Encode categorical features
         for feature, value in categorical_features.items():
             if feature in label_encoders:
                 try:
@@ -134,13 +125,11 @@ def predict():
             else:
                 input_data[feature] = value
         
-        # Create DataFrame
         df = pd.DataFrame([input_data])
         df = df[feature_names]
         
         print(f"Input shape: {df.shape}")
         
-        # Predict
         prediction = model.predict(df)[0]
         confidence = None
         
@@ -171,6 +160,5 @@ if __name__ == '__main__':
     print("Starting server...")
     print("="*60 + "\n")
     
-    # Use PORT from environment or default to 5000
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=False, host='0.0.0.0', port=port)
